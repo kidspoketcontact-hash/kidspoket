@@ -96,3 +96,4 @@ Swagger: `https://localhost:xxxx/swagger`
 כל הקוד נכתב ידנית בלי גישה ל-dotnet SDK/אינטרנט בסביבה שלי (אין לי איך להריץ `dotnet build`
 או NuGet restore כאן) - תריץ את זה אצלך ותגיד לי אם יש שגיאות קומפילציה, נתקן מהר.
 # kidspoket
+# kidspoket
