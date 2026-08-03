@@ -1,0 +1,11 @@
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/bin/Debug/net9.0/KidsPocket.Domain.deps.json
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/bin/Debug/net9.0/KidsPocket.Domain.dll
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/bin/Debug/net9.0/KidsPocket.Domain.pdb
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/obj/Debug/net9.0/KidsPocket.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/obj/Debug/net9.0/KidsPocket.Domain.AssemblyInfoInputs.cache
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/obj/Debug/net9.0/KidsPocket.Domain.AssemblyInfo.cs
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/obj/Debug/net9.0/KidsPocket.Domain.csproj.CoreCompileInputs.cache
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/obj/Debug/net9.0/KidsPocket.Domain.dll
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/obj/Debug/net9.0/refint/KidsPocket.Domain.dll
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/obj/Debug/net9.0/KidsPocket.Domain.pdb
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/obj/Debug/net9.0/ref/KidsPocket.Domain.dll

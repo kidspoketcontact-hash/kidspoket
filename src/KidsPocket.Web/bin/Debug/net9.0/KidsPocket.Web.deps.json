@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "KidsPocket.Web/1.0.0": {
+        "dependencies": {
+          "KidsPocket.Contracts": "1.0.0"
+        },
+        "runtime": {
+          "KidsPocket.Web.dll": {}
+        }
+      },
+      "KidsPocket.Contracts/1.0.0": {
+        "runtime": {
+          "KidsPocket.Contracts.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "KidsPocket.Web/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "KidsPocket.Contracts/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "KidsPocket.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/claudiaedelman\/projects\/KidsPocket\/src\/KidsPocket.Api",
+  "KidsPocket.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/claudiaedelman\/projects\/KidsPocket\/src\/KidsPocket.Application",
+  "KidsPocket.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/claudiaedelman\/projects\/KidsPocket\/src\/KidsPocket.Contracts",
+  "KidsPocket.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/claudiaedelman\/projects\/KidsPocket\/src\/KidsPocket.Domain",
+  "KidsPocket.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/claudiaedelman\/projects\/KidsPocket\/src\/KidsPocket.Infrastructure"
+}
