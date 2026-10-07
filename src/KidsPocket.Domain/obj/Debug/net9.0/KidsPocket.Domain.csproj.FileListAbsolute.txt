@@ -9,3 +9,4 @@
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/obj/Debug/net9.0/refint/KidsPocket.Domain.dll
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/obj/Debug/net9.0/KidsPocket.Domain.pdb
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/obj/Debug/net9.0/ref/KidsPocket.Domain.dll
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/obj/Debug/net9.0/KidsPocket.Domain.sourcelink.json

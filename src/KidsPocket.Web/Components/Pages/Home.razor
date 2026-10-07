@@ -1,7 +1,164 @@
 @page "/"
+@using KidsPocket.Contracts.Ledger
+@using KidsPocket.Web.Models
+@using KidsPocket.Web.Services
+@inject KidsPocketApiClient Api
+@inject ClientAuthState AuthState
+@inject NavigationManager Nav
 
-<h3>ברוכים הבאים ל-KidsPocket</h3>
-<p>
-    זהו שלד ראשוני של אפליקציית ה-Blazor. השלב הבא: לחבר HttpClient מול KidsPocket.Api
-    ולבנות את מסך ה-Decision Flow - המסך המרכזי שבו הילד מחליט איך לחלק כסף שקיבל.
-</p>
+@if (_error is not null)
+{
+    <div class="alert alert-error">⚠️ @_error</div>
+}
+
+@if (EffectiveChildId is null)
+{
+    <div class="card"><p class="card-text">טוען...</p></div>
+}
+else
+{
+    @if (_pendingDecisions is { Count: > 0 })
+    {
+        <div class="card">
+            <h2 class="card-title">💰 מחכה לך החלטה!</h2>
+            @foreach (var decision in _pendingDecisions)
+            {
+                <a class="btn btn-primary btn-block" href="@DecisionFlowUrl(decision.DecisionId)">
+                    ₪@decision.Amount מ-@decision.Source - לחצו כדי להחליט
+                </a>
+            }
+        </div>
+    }
+
+    <div class="card">
+        <div class="child-chip">👶 @(_childName ?? EffectiveChildId?.ToString())</div>
+        <div class="btn-row">
+            @if (AuthState.IsParent)
+            {
+                <a class="btn btn-primary" href="/dashboard">🧑‍🤝‍🧑 לוח בקרה להורים</a>
+                <a class="btn btn-primary" href="@($"/rewards?childId={EffectiveChildId}")">🌟 תגמול</a>
+            }
+            <a class="btn btn-primary" href="@($"/goals?childId={EffectiveChildId}")">🎯 מטרות חיסכון</a>
+            <a class="btn btn-primary" href="@($"/chores?childId={EffectiveChildId}")">📋 משימות</a>
+        </div>
+
+        @if (_balance is not null)
+        {
+            <div class="total-balance">
+                <span class="total-balance-label">💰 יתרה כוללת</span>
+                <span class="total-balance-amount">₪@_balance.TotalBalance</span>
+            </div>
+
+            <div class="bucket-grid">
+                @foreach (var bucket in _balance.Buckets)
+                {
+                    <div class="bucket-chip @BucketVisuals.CssClassFor(bucket.BucketCode)">
+                        <span class="bucket-chip-icon">@BucketVisuals.IconFor(bucket.BucketCode)</span>
+                        <span class="bucket-chip-name">@bucket.BucketName</span>
+                        <span class="bucket-chip-amount">₪@bucket.Balance</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    @if (AuthState.IsParent)
+    {
+        <div class="card">
+            @if (_moneyGivenMessage is not null)
+            {
+                <div class="alert alert-success">✅ @_moneyGivenMessage</div>
+            }
+            <h2 class="card-title">🎁 תן כסף לילד</h2>
+            <div class="form-row">
+                <label class="form-label">סכום</label>
+                <input type="number" min="1" class="input" @bind="_amount" />
+            </div>
+            <div class="form-row">
+                <label class="form-label">מקור</label>
+                <input class="input" @bind="_source" />
+            </div>
+            <button class="btn btn-primary btn-block" disabled="@_busy" @onclick="GiveMoneyAsync">
+                🎁 תן כסף
+            </button>
+        </div>
+    }
+}
+
+@code {
+    // רלוונטי רק ל-Parent - "באיזה ילד/ה אני צופה עכשיו" (הגעה מלוח הבקרה).
+    // ל-Child אין משמעות לפרמטר הזה בכלל - הזהות שלו תמיד מגיעה מה-Token, אף פעם לא מה-URL.
+    [SupplyParameterFromQuery] public Guid? ChildId { get; set; }
+
+    private Guid? EffectiveChildId => AuthState.IsChild ? AuthState.UserId : ChildId;
+
+    private ChildBalanceResponse? _balance;
+    private List<PendingDecisionSummaryDto>? _pendingDecisions;
+    private string? _childName;
+    private decimal _amount = 100;
+    private string _source = "WeeklyAllowance";
+    private bool _busy;
+    private string? _error;
+    private string? _moneyGivenMessage;
+    private Guid? _loadedForChildId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!AuthState.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        if (AuthState.IsParent && ChildId is null)
+        {
+            Nav.NavigateTo("/dashboard");
+            return;
+        }
+
+        if (EffectiveChildId is null || EffectiveChildId == _loadedForChildId) return;
+        _loadedForChildId = EffectiveChildId;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _balance = await Api.GetBalanceAsync(EffectiveChildId!.Value);
+            _pendingDecisions = (await Api.GetChildPendingDecisionsAsync(EffectiveChildId.Value)).Decisions;
+
+            _childName = AuthState.IsChild
+                ? AuthState.DisplayName
+                : (await Api.GetHouseholdChildrenAsync(AuthState.HouseholdId!.Value))
+                    .Children.FirstOrDefault(c => c.ChildId == EffectiveChildId)?.DisplayName;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private string DecisionFlowUrl(Guid decisionId) => $"/decision/{decisionId}";
+
+    private async Task GiveMoneyAsync()
+    {
+        _busy = true;
+        _error = null;
+        _moneyGivenMessage = null;
+        try
+        {
+            await Api.CreateMoneyEventAsync(EffectiveChildId!.Value, _source, _amount, null);
+            _moneyGivenMessage = $"נשלחו ₪{_amount} ל{_childName}. עכשיו זה תלוי בהחלטה שלו/שלה.";
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

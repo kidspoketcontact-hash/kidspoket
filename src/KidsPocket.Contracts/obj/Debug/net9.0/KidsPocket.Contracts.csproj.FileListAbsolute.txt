@@ -9,3 +9,4 @@
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Contracts/obj/Debug/net9.0/refint/KidsPocket.Contracts.dll
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Contracts/obj/Debug/net9.0/KidsPocket.Contracts.pdb
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Contracts/obj/Debug/net9.0/ref/KidsPocket.Contracts.dll
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Contracts/obj/Debug/net9.0/KidsPocket.Contracts.sourcelink.json

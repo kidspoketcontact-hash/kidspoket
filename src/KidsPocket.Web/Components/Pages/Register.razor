@@ -1,0 +1,85 @@
+@page "/register"
+@using KidsPocket.Web.Services
+@inject KidsPocketApiClient Api
+@inject ClientAuthState AuthState
+@inject NavigationManager Nav
+
+@if (_error is not null)
+{
+    <div class="alert alert-error">⚠️ @_error</div>
+}
+
+<div class="card">
+    <h2 class="card-title">📝 הרשמה כהורה</h2>
+    <div class="form-row">
+        <label class="form-label">שם המשפחה / בית האב</label>
+        <input class="input" @bind="_householdName" placeholder="למשל: משפחת כהן" />
+    </div>
+    <div class="form-row">
+        <label class="form-label">השם שלך</label>
+        <input class="input" @bind="_displayName" />
+    </div>
+    <div class="form-row">
+        <label class="form-label">תפקיד</label>
+        <select class="input" @bind="_role">
+            <option value="Mother">אמא</option>
+            <option value="Father">אבא</option>
+            <option value="Stepparent">הורה חורג/ת</option>
+            <option value="Grandparent">סבא/סבתא</option>
+            <option value="Guardian">אפוטרופוס</option>
+            <option value="Other">אחר</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label class="form-label">אימייל</label>
+        <input class="input" @bind="_email" />
+    </div>
+    <div class="form-row">
+        <label class="form-label">סיסמה</label>
+        <input type="password" class="input" @bind="_password" />
+    </div>
+    <button class="btn btn-primary btn-block" disabled="@_busy" @onclick="RegisterAsync">
+        ✅ הרשמה והתחברות
+    </button>
+    <p class="card-text muted">כבר יש לך חשבון? <a href="/login/parent">התחברות</a></p>
+
+    <SocialLoginButtons HouseholdName="@_householdName" OnSignedIn="GoToDashboard" />
+</div>
+
+@code {
+    private string _householdName = "";
+    private string _displayName = "";
+    private string _role = "Mother";
+    private string _email = "";
+    private string _password = "";
+    private bool _busy;
+    private string? _error;
+
+    private async Task RegisterAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_householdName) || string.IsNullOrWhiteSpace(_displayName)
+            || string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
+        {
+            _error = "יש למלא את כל השדות";
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+        try
+        {
+            var household = await Api.CreateHouseholdAsync(_householdName);
+            await Api.AddAdultAsync(household.Id, _displayName, _role, _email, _password);
+            var login = await Api.ParentLoginAsync(_email, _password);
+            AuthState.SetParent(login.Token, login.AdultId, login.HouseholdId, login.DisplayName);
+            Nav.NavigateTo("/dashboard");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+            _busy = false;
+        }
+    }
+
+    private void GoToDashboard() => Nav.NavigateTo("/dashboard");
+}

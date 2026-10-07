@@ -27,3 +27,9 @@
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/obj/Debug/net9.0/KidsPocket.Web.pdb
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/obj/Debug/net9.0/KidsPocket.Web.genruntimeconfig.cache
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/obj/Debug/net9.0/ref/KidsPocket.Web.dll
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/obj/Debug/net9.0/KidsPocket.Web.sourcelink.json
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/bin/Debug/net9.0/appsettings.json
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/bin/Debug/net9.0/KidsPocket.Web.staticwebassets.runtime.json
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/obj/Debug/net9.0/swae.build.ex.cache
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/obj/Debug/net9.0/compressed/og8k9ik2zx-{0}-ovvxi60gnc-ovvxi60gnc.gz
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/obj/Debug/net9.0/compressed/r06v0x45bo-{0}-paq3sstm87-paq3sstm87.gz

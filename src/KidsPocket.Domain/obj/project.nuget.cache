@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "n9J7oM2IvGU=",
+  "dgSpecHash": "3f5EstxrB9g=",
   "success": true,
   "projectFilePath": "/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Domain/KidsPocket.Domain.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/Users/claudiaedelman/.nuget/packages/microsoft.netcore.app.ref/9.0.19/microsoft.netcore.app.ref.9.0.19.nupkg.sha512",
+    "/Users/claudiaedelman/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.19/microsoft.aspnetcore.app.ref.9.0.19.nupkg.sha512"
+  ],
   "logs": []
 }

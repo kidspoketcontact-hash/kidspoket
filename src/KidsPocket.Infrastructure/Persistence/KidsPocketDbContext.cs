@@ -38,7 +38,11 @@ public class KidsPocketDbContext : DbContext
             e.HasKey(x => x.Id);
             e.Property(x => x.DisplayName).IsRequired().HasMaxLength(100);
             e.Property(x => x.Email).IsRequired().HasMaxLength(200);
+            e.Property(x => x.ExternalId).HasMaxLength(255);
             e.HasIndex(x => x.Email);
+            // מזהה חיצוני (sub של Google/Apple) ייחודי לכל ספק - מונע יצירת שני Adult לאותו
+            // משתמש Google אם הוא לוחץ "התחבר" פעמיים. Filtered כי לחשבונות Local אין ExternalId.
+            e.HasIndex(x => new { x.Provider, x.ExternalId }).IsUnique().HasFilter("\"ExternalId\" IS NOT NULL");
         });
 
         modelBuilder.Entity<Child>(e =>

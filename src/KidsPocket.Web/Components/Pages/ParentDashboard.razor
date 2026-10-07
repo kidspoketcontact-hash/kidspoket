@@ -1,0 +1,151 @@
+@page "/dashboard"
+@using KidsPocket.Contracts.Ledger
+@using KidsPocket.Web.Models
+@using KidsPocket.Web.Services
+@inject KidsPocketApiClient Api
+@inject ClientAuthState AuthState
+@inject NavigationManager Nav
+
+@if (_error is not null)
+{
+    <div class="alert alert-error">⚠️ @_error</div>
+}
+
+@if (_children is null)
+{
+    <div class="card"><p class="card-text">טוען...</p></div>
+}
+else
+{
+    <div class="card">
+        <h2 class="card-title">🧑‍🤝‍🧑 לוח בקרה להורים</h2>
+        <p class="card-text muted">כל הילדים בבית האב הזה, עם היתרה הנוכחית שלהם בכל קופה.</p>
+    </div>
+
+    @if (_newChildPin is not null)
+    {
+        <div class="alert alert-success">
+            ✅ נוצר/ה בהצלחה! ה-PIN להתחברות: <code>@_newChildPin</code> (אי אפשר לשחזר אותו אחר כך - כדאי לרשום)
+        </div>
+    }
+
+    @if (_children.Count == 0)
+    {
+        <div class="card"><p class="card-text muted">אין עדיין ילדים בבית האב הזה.</p></div>
+    }
+
+    @foreach (var child in _children)
+    {
+        <div class="card" @key="child.ChildId">
+            <div class="total-balance">
+                <span class="total-balance-label">👶 @child.DisplayName</span>
+                @if (_balances.TryGetValue(child.ChildId, out var balance))
+                {
+                    <span class="total-balance-amount">₪@balance.TotalBalance</span>
+                }
+            </div>
+            <div class="child-chip">מזהה להתחברות: <code>@child.ChildId</code></div>
+
+            @if (_balances.TryGetValue(child.ChildId, out var b))
+            {
+                <div class="bucket-grid">
+                    @foreach (var bucket in b.Buckets)
+                    {
+                        <div class="bucket-chip @BucketVisuals.CssClassFor(bucket.BucketCode)">
+                            <span class="bucket-chip-icon">@BucketVisuals.IconFor(bucket.BucketCode)</span>
+                            <span class="bucket-chip-name">@bucket.BucketName</span>
+                            <span class="bucket-chip-amount">₪@bucket.Balance</span>
+                        </div>
+                    }
+                </div>
+            }
+
+            <a class="btn btn-primary btn-block" href="@($"/?childId={child.ChildId}")">
+                💰 לצפייה מלאה ומתן כסף
+            </a>
+        </div>
+    }
+
+    <div class="card">
+        <h2 class="card-title">➕ הוספת ילד/ה נוספ/ת</h2>
+        <div class="form-row">
+            <label class="form-label">שם</label>
+            <input class="input" @bind="_newChildName" />
+        </div>
+        <div class="form-row">
+            <label class="form-label">PIN להתחברות (4 ספרות)</label>
+            <input class="input" @bind="_newChildPinInput" placeholder="1234" />
+        </div>
+        <button class="btn btn-primary" disabled="@_busy" @onclick="AddChildAsync">➕ הוסף</button>
+    </div>
+}
+
+@code {
+    private List<ChildSummaryDto>? _children;
+    private readonly Dictionary<Guid, ChildBalanceResponse> _balances = new();
+    private string _newChildName = "";
+    private string _newChildPinInput = "";
+    private string? _newChildPin;
+    private bool _busy;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthState.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+        if (!AuthState.IsParent)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            var result = await Api.GetHouseholdChildrenAsync(AuthState.HouseholdId!.Value);
+            _children = result.Children;
+
+            var balances = await Task.WhenAll(_children.Select(c => Api.GetBalanceAsync(c.ChildId)));
+            _balances.Clear();
+            foreach (var balance in balances)
+                _balances[balance.ChildId] = balance;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private async Task AddChildAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newChildName)) return;
+
+        _busy = true;
+        _error = null;
+        _newChildPin = null;
+        try
+        {
+            var pin = string.IsNullOrWhiteSpace(_newChildPinInput) ? null : _newChildPinInput.Trim();
+            await Api.CreateChildAsync(AuthState.HouseholdId!.Value, _newChildName, pin);
+            _newChildPin = pin;
+            _newChildName = "";
+            _newChildPinInput = "";
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

@@ -1,0 +1,84 @@
+@page "/login"
+@using KidsPocket.Web.Services
+@inject KidsPocketApiClient Api
+@inject ClientAuthState AuthState
+@inject NavigationManager Nav
+
+@if (_error is not null)
+{
+    <div class="alert alert-error">⚠️ @_error</div>
+}
+
+@if (_demoResult is not null)
+{
+    <div class="card card-center">
+        <div class="success-icon">✨</div>
+        <h2 class="card-title">משפחת הדמו מוכנה!</h2>
+        <p class="card-text muted">
+            נרשמת כהורה ונכנסת. אם תרצו לבדוק גם את הכניסה כילד/ה, אלה הפרטים
+            (נשמרים רק כרגע - אי אפשר לשחזר PIN אחרי שיוצאים מהמסך הזה):
+        </p>
+        <div class="child-chip">👶 מזהה ילד/ה: <code>@_demoResult.Value.ChildId</code></div>
+        <div class="child-chip">🔑 PIN: <code>@_demoResult.Value.Pin</code></div>
+        <a class="btn btn-primary btn-block" href="/dashboard">🧑‍🤝‍🧑 המשך ללוח הבקרה</a>
+    </div>
+}
+else
+{
+    <div class="card">
+        <h2 class="card-title">👋 ברוכים הבאים ל-KidsPocket</h2>
+        <p class="card-text muted">מי נכנס/ת?</p>
+        <div class="form-row">
+            <a class="btn btn-primary btn-block" href="/login/parent">👨‍👩‍👧 אני הורה</a>
+        </div>
+        <div class="form-row">
+            <a class="btn btn-primary btn-block" href="/login/child">🧒 אני ילד/ה</a>
+        </div>
+        <p class="card-text muted">
+            אין לך חשבון עדיין? <a href="/register">הרשמה כהורה</a>
+        </p>
+    </div>
+
+    <div class="card">
+        <h2 class="card-title">✨ רוצים רק להתרשם?</h2>
+        <p class="card-text muted">יוצר משפחת דמו מלאה (הורה + ילד/ה) ומכניס אתכם ישר כהורה.</p>
+        <button class="btn btn-primary btn-block" disabled="@_busy" @onclick="CreateQuickDemoAsync">
+            🚀 דמו מהיר
+        </button>
+    </div>
+}
+
+@code {
+    private bool _busy;
+    private string? _error;
+    private (Guid ChildId, string Pin)? _demoResult;
+
+    private async Task CreateQuickDemoAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            var email = $"demo-{Guid.NewGuid():N}@kidspocket.local";
+            const string password = "Demo1234!";
+            const string pin = "1234";
+
+            var household = await Api.CreateHouseholdAsync("משפחת דמו");
+            await Api.AddAdultAsync(household.Id, "הורה דמו", "Mother", email, password);
+            var login = await Api.ParentLoginAsync(email, password);
+            AuthState.SetParent(login.Token, login.AdultId, login.HouseholdId, login.DisplayName);
+
+            var child = await Api.CreateChildAsync(household.Id, "דני", pin);
+
+            _demoResult = (child.Id, pin);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

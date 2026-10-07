@@ -1,0 +1,92 @@
+@page "/rewards"
+@using KidsPocket.Web.Services
+@inject KidsPocketApiClient Api
+@inject ClientAuthState AuthState
+@inject NavigationManager Nav
+
+@if (_error is not null)
+{
+    <div class="alert alert-error">⚠️ @_error</div>
+}
+
+@if (!AuthState.IsAuthenticated || ChildId is null)
+{
+    <div class="card"><p class="card-text">טוען...</p></div>
+}
+else if (!AuthState.IsParent)
+{
+    <div class="card">
+        <p class="card-text muted">רק הורה יכול לתת תגמול.</p>
+        <a class="btn btn-primary" href="/">🏠 חזרה</a>
+    </div>
+}
+else
+{
+    @if (_givenMessage is not null)
+    {
+        <div class="alert alert-success">✅ @_givenMessage</div>
+    }
+
+    <div class="card">
+        <h2 class="card-title">🌟 תגמול חד-פעמי</h2>
+        <p class="card-text muted">
+            בונוס ישיר מהורה - למשל על התנהגות יפה או הישג מיוחד. גם הוא, כמו כל כסף אחר,
+            עובר דרך מסך ה-Decision Flow שהילד/ה רואה כשנכנס/ת - לא נכנס ישירות לארנק.
+        </p>
+        <a class="btn btn-primary" href="@($"/?childId={ChildId}")">🔄 חזרה ליתרה</a>
+    </div>
+
+    <div class="card">
+        <div class="form-row">
+            <label class="form-label">סכום</label>
+            <input type="number" min="1" class="input" @bind="_amount" />
+        </div>
+        <div class="form-row">
+            <label class="form-label">על מה? (לא חובה)</label>
+            <input class="input" @bind="_description" placeholder="למשל: עזרת לאחות הקטנה" />
+        </div>
+        <button class="btn btn-primary btn-block" disabled="@_busy" @onclick="GiveRewardAsync">
+            🌟 תן תגמול
+        </button>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery] public Guid? ChildId { get; set; }
+
+    private decimal _amount = 20;
+    private string _description = "";
+    private bool _busy;
+    private string? _error;
+    private string? _givenMessage;
+
+    protected override void OnInitialized()
+    {
+        if (!AuthState.IsAuthenticated)
+            Nav.NavigateTo("/login");
+    }
+
+    private async Task GiveRewardAsync()
+    {
+        if (_amount <= 0) return;
+
+        _busy = true;
+        _error = null;
+        _givenMessage = null;
+        try
+        {
+            var result = await Api.CreateRewardAsync(ChildId!.Value, AuthState.UserId!.Value, _amount, _description);
+            _givenMessage = $"נשלחו ₪{_amount} תגמול. מחכה שהילד/ה יחליט/תחליט איך לחלק.";
+            _amount = 20;
+            _description = "";
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

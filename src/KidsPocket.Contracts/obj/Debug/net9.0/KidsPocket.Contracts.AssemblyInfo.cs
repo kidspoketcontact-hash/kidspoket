@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KidsPocket.Contracts")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+45f8a365adaca9d01e84a2f89f19782a3d11d95d")]
 [assembly: System.Reflection.AssemblyProductAttribute("KidsPocket.Contracts")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KidsPocket.Contracts")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

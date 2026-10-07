@@ -5,7 +5,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// TODO: להוסיף HttpClient מוגדר מול KidsPocket.Api (base address מ-appsettings) לפני שמחברים מסכים אמיתיים
+builder.Services.AddHttpClient("KidsPocketApi", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"]!);
+});
+builder.Services.AddScoped<KidsPocket.Web.Services.ClientAuthState>();
+builder.Services.AddScoped<KidsPocket.Web.Services.KidsPocketApiClient>();
 
 var app = builder.Build();
 

@@ -1,19 +1,27 @@
 is_global = true
 build_property.TargetFramework = net9.0
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v9.0
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = true
 build_property.ProjectTypeGuids = 
 build_property.InvariantGlobalization = 
 build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property.EntryPointFilePath = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = KidsPocket.Web
 build_property.RootNamespace = KidsPocket.Web
 build_property.ProjectDir = /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/
-build_property.RazorLangVersion = 6.0
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
 build_property.MSBuildProjectDirectory = /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web
 build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 9.0
+build_property.EnableCodeStyleSeverity = 
 
 [/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/App.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9BcHAucmF6b3I=
@@ -23,12 +31,52 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTWFpbkxheW91dC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/Pages/ChildLogin.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9DaGlsZExvZ2luLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/Pages/Chores.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9DaG9yZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/Pages/DecisionFlow.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9EZWNpc2lvbkZsb3cucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/Pages/Goals.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Hb2Fscy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ib21lLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/Pages/LoginLanding.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Mb2dpbkxhbmRpbmcucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/Pages/ParentDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9QYXJlbnREYXNoYm9hcmQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/Pages/ParentLogin.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9QYXJlbnRMb2dpbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/Pages/Register.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9SZWdpc3Rlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/Pages/Rewards.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9SZXdhcmRzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/Routes.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Sb3V0ZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/Shared/SocialLoginButtons.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvU29jaWFsTG9naW5CdXR0b25zLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Web/Components/_Imports.razor]

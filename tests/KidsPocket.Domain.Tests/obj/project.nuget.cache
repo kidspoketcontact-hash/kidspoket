@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "gfkREYmW3+0=",
+  "dgSpecHash": "2a8rg75AsjQ=",
   "success": true,
   "projectFilePath": "/Users/claudiaedelman/projects/KidsPocket/tests/KidsPocket.Domain.Tests/KidsPocket.Domain.Tests.csproj",
   "expectedPackageFiles": [
@@ -17,7 +17,9 @@
     "/Users/claudiaedelman/.nuget/packages/xunit.core/2.9.0/xunit.core.2.9.0.nupkg.sha512",
     "/Users/claudiaedelman/.nuget/packages/xunit.extensibility.core/2.9.0/xunit.extensibility.core.2.9.0.nupkg.sha512",
     "/Users/claudiaedelman/.nuget/packages/xunit.extensibility.execution/2.9.0/xunit.extensibility.execution.2.9.0.nupkg.sha512",
-    "/Users/claudiaedelman/.nuget/packages/xunit.runner.visualstudio/2.8.2/xunit.runner.visualstudio.2.8.2.nupkg.sha512"
+    "/Users/claudiaedelman/.nuget/packages/xunit.runner.visualstudio/2.8.2/xunit.runner.visualstudio.2.8.2.nupkg.sha512",
+    "/Users/claudiaedelman/.nuget/packages/microsoft.netcore.app.ref/9.0.19/microsoft.netcore.app.ref.9.0.19.nupkg.sha512",
+    "/Users/claudiaedelman/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.19/microsoft.aspnetcore.app.ref.9.0.19.nupkg.sha512"
   ],
   "logs": []
 }

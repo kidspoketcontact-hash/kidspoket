@@ -1,0 +1,54 @@
+@page "/login/parent"
+@using KidsPocket.Web.Services
+@inject KidsPocketApiClient Api
+@inject ClientAuthState AuthState
+@inject NavigationManager Nav
+
+@if (_error is not null)
+{
+    <div class="alert alert-error">⚠️ @_error</div>
+}
+
+<div class="card">
+    <h2 class="card-title">👨‍👩‍👧 התחברות הורה</h2>
+    <div class="form-row">
+        <label class="form-label">אימייל</label>
+        <input class="input" @bind="_email" />
+    </div>
+    <div class="form-row">
+        <label class="form-label">סיסמה</label>
+        <input type="password" class="input" @bind="_password" />
+    </div>
+    <button class="btn btn-primary btn-block" disabled="@_busy" @onclick="LoginAsync">
+        🔓 התחברות
+    </button>
+    <p class="card-text muted">אין לך חשבון עדיין? <a href="/register">הרשמה</a></p>
+
+    <SocialLoginButtons OnSignedIn="GoToDashboard" />
+</div>
+
+@code {
+    private string _email = "";
+    private string _password = "";
+    private bool _busy;
+    private string? _error;
+
+    private async Task LoginAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            var login = await Api.ParentLoginAsync(_email, _password);
+            AuthState.SetParent(login.Token, login.AdultId, login.HouseholdId, login.DisplayName);
+            Nav.NavigateTo("/dashboard");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+            _busy = false;
+        }
+    }
+
+    private void GoToDashboard() => Nav.NavigateTo("/dashboard");
+}

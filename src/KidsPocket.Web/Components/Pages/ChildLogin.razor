@@ -1,0 +1,58 @@
+@page "/login/child"
+@using KidsPocket.Web.Services
+@inject KidsPocketApiClient Api
+@inject ClientAuthState AuthState
+@inject NavigationManager Nav
+
+@if (_error is not null)
+{
+    <div class="alert alert-error">⚠️ @_error</div>
+}
+
+<div class="card">
+    <h2 class="card-title">🧒 התחברות ילד/ה</h2>
+    <p class="card-text muted">
+        תבקש/י מההורה שלך את מזהה הילד/ה (מופיע בלוח הבקרה שלו) ואת ה-PIN שהוגדר לך.
+    </p>
+    <div class="form-row">
+        <label class="form-label">מזהה ילד/ה</label>
+        <input class="input" @bind="_childId" placeholder="00000000-0000-0000-0000-000000000000" />
+    </div>
+    <div class="form-row">
+        <label class="form-label">PIN</label>
+        <input type="password" class="input" @bind="_pin" />
+    </div>
+    <button class="btn btn-primary btn-block" disabled="@_busy" @onclick="LoginAsync">
+        🔓 התחברות
+    </button>
+</div>
+
+@code {
+    private string _childId = "";
+    private string _pin = "";
+    private bool _busy;
+    private string? _error;
+
+    private async Task LoginAsync()
+    {
+        if (!Guid.TryParse(_childId.Trim(), out var childId))
+        {
+            _error = "מזהה ילד/ה לא תקין";
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+        try
+        {
+            var login = await Api.ChildLoginAsync(childId, _pin);
+            AuthState.SetChild(login.Token, login.ChildId, login.DisplayName);
+            Nav.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+            _busy = false;
+        }
+    }
+}

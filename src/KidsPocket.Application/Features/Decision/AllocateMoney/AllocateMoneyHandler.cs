@@ -27,6 +27,9 @@ public class AllocateMoneyHandler : ICommandHandler<AllocateMoneyCommand, Alloca
 
         // הכלל העסקי היחיד נאכף בתוך ה-Domain: הסכום חייב להתאים בדיוק לסכום שהתקבל
         decision.Confirm(allocationDict, decision.MoneyEvent!.Amount);
+        // ה-Id של DecisionAllocation נוצר באפליקציה (לא ב-DB), אז EF לא יכול להבין מתוך
+        // graph fixup בלבד שמדובר בישות חדשה - צריך Add מפורש כדי לקבל INSERT ולא UPDATE-שלא-קיים.
+        _db.DecisionAllocations.AddRange(decision.Allocations);
 
         foreach (var allocation in command.Allocations.Where(a => a.Amount != 0))
         {
@@ -39,6 +42,7 @@ public class AllocateMoneyHandler : ICommandHandler<AllocateMoneyCommand, Alloca
 
         // מתזמן תזכורת רפלקציה כמה ימים קדימה - חלק מ-Learning Journey
         decision.ScheduleReflection(DateTime.UtcNow.AddDays(3));
+        _db.DecisionReflections.Add(decision.Reflection!);
 
         await _db.SaveChangesAsync(ct);
 

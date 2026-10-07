@@ -1,0 +1,114 @@
+@* כפתורי "המשך עם Google/Apple" - קורא ל-api/auth/google|apple, שמחברים משתמש קיים או
+   נרשמים אוטומטית (יוצרים בית אב + Adult) אם זו הפעם הראשונה. משמש גם ב-Login וגם ב-Register -
+   ה-endpoint אחד עושה login-or-register, אין הבדל בין המסכים מבחינת הכפתורים עצמם. *@
+@using KidsPocket.Web.Services
+@inject KidsPocketApiClient Api
+@inject ClientAuthState AuthState
+@inject IJSRuntime JS
+@inject IConfiguration Configuration
+@implements IAsyncDisposable
+
+@if (!string.IsNullOrWhiteSpace(_googleClientId) || !string.IsNullOrWhiteSpace(_appleClientId))
+{
+    <div class="social-login">
+        <div class="social-divider"><span>או</span></div>
+
+        @if (_error is not null)
+        {
+            <div class="alert alert-error">⚠️ @_error</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_googleClientId))
+        {
+            <div id="@_googleButtonId"></div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_appleClientId))
+        {
+            <button class="btn btn-secondary btn-block" disabled="@_busy" @onclick="SignInWithAppleAsync">
+                🍎 המשך עם Apple
+            </button>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string? HouseholdName { get; set; }
+    [Parameter] public EventCallback OnSignedIn { get; set; }
+
+    private readonly string _googleButtonId = $"google-btn-{Guid.NewGuid():N}";
+    private DotNetObjectReference<SocialLoginButtons>? _dotNetRef;
+    private string? _googleClientId;
+    private string? _appleClientId;
+    private string? _appleRedirectUri;
+    private bool _busy;
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        _googleClientId = Configuration["GoogleAuth:ClientId"];
+        _appleClientId = Configuration["AppleAuth:ClientId"];
+        _appleRedirectUri = Configuration["AppleAuth:RedirectUri"];
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || string.IsNullOrWhiteSpace(_googleClientId)) return;
+
+        _dotNetRef = DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("kidsPocketAuth.renderGoogleButton", _googleClientId, _dotNetRef, _googleButtonId);
+    }
+
+    [JSInvokable]
+    public async Task OnGoogleCredential(string idToken)
+    {
+        _busy = true;
+        _error = null;
+        StateHasChanged();
+        try
+        {
+            var login = await Api.GoogleLoginAsync(idToken, HouseholdName);
+            AuthState.SetParent(login.Token, login.AdultId, login.HouseholdId, login.DisplayName);
+            await OnSignedIn.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SignInWithAppleAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            var result = await JS.InvokeAsync<AppleAuthJsResult>(
+                "kidsPocketAuth.signInWithApple", _appleClientId, _appleRedirectUri);
+            var login = await Api.AppleLoginAsync(result.IdToken, HouseholdName, result.Email, result.DisplayName);
+            AuthState.SetParent(login.Token, login.AdultId, login.HouseholdId, login.DisplayName);
+            await OnSignedIn.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private record AppleAuthJsResult(string IdToken, string? Email, string? DisplayName);
+
+    public ValueTask DisposeAsync()
+    {
+        _dotNetRef?.Dispose();
+        return ValueTask.CompletedTask;
+    }
+}

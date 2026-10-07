@@ -17,3 +17,4 @@
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Application/obj/Debug/net9.0/refint/KidsPocket.Application.dll
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Application/obj/Debug/net9.0/KidsPocket.Application.pdb
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Application/obj/Debug/net9.0/ref/KidsPocket.Application.dll
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Application/obj/Debug/net9.0/KidsPocket.Application.sourcelink.json

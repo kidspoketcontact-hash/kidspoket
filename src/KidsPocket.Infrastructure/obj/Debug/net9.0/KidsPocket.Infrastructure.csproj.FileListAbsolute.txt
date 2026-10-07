@@ -15,3 +15,4 @@
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Infrastructure/obj/Debug/net9.0/KidsPocket.Infrastructure.pdb
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Infrastructure/obj/Debug/net9.0/KidsPocket.Infrastructure.genruntimeconfig.cache
 /Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Infrastructure/obj/Debug/net9.0/ref/KidsPocket.Infrastructure.dll
+/Users/claudiaedelman/projects/KidsPocket/src/KidsPocket.Infrastructure/obj/Debug/net9.0/KidsPocket.Infrastructure.sourcelink.json

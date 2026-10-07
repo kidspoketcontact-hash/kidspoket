@@ -1,0 +1,211 @@
+@page "/chores"
+@using KidsPocket.Web.Models
+@using KidsPocket.Web.Services
+@inject KidsPocketApiClient Api
+@inject ClientAuthState AuthState
+@inject NavigationManager Nav
+
+@if (_error is not null)
+{
+    <div class="alert alert-error">⚠️ @_error</div>
+}
+
+@if (EffectiveChildId is null)
+{
+    <div class="card"><p class="card-text">טוען...</p></div>
+}
+else
+{
+    @if (_approvedMessage is not null)
+    {
+        <div class="alert alert-success">✅ @_approvedMessage</div>
+    }
+
+    <div class="card">
+        <h2 class="card-title">📋 משימות</h2>
+        <p class="card-text muted">
+            הילד/ה מסמנ/ת שביצע/ה, ואז ההורה מאשר/ת - האישור הוא מה שיוצר את הכסף
+            (ועובר, כמו כל כסף אחר, דרך מסך ה-Decision Flow שהילד/ה רואה כשנכנס/ת).
+        </p>
+        <a class="btn btn-primary" href="@BackUrl">🔄 חזרה ליתרה</a>
+    </div>
+
+    @if (_chores is not null)
+    {
+        @foreach (var chore in _chores)
+        {
+            <div class="card" @key="chore.ChoreId">
+                <div class="total-balance">
+                    <span class="total-balance-label">@StatusIcon(chore.Status) @chore.Title</span>
+                    <span class="total-balance-amount">₪@chore.RewardAmount</span>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(chore.Description))
+                {
+                    <p class="card-text muted">@chore.Description</p>
+                }
+
+                @if (chore.Status == "Pending" && AuthState.IsChild)
+                {
+                    <button class="btn btn-primary btn-block" disabled="@_busy" @onclick="() => CompleteAsync(chore.ChoreId)">
+                        ✅ סימנתי שביצעתי
+                    </button>
+                }
+                else if (chore.Status == "Pending")
+                {
+                    <p class="card-text muted">ממתין/ה שהילד/ה יסמן/תסמן שביצע/ה</p>
+                }
+                else if (chore.Status == "Completed" && AuthState.IsParent)
+                {
+                    <button class="btn btn-primary btn-block" disabled="@_busy" @onclick="() => ApproveAsync(chore.ChoreId)">
+                        👍 אשר ותגמל
+                    </button>
+                }
+                else if (chore.Status == "Completed")
+                {
+                    <p class="card-text muted">ממתין לאישור הורה</p>
+                }
+                else
+                {
+                    <p class="card-text muted">💰 שולם</p>
+                }
+            </div>
+        }
+    }
+
+    @if (AuthState.IsParent)
+    {
+        <div class="card">
+            <h2 class="card-title">➕ משימה חדשה</h2>
+            <div class="form-row">
+                <label class="form-label">כותרת</label>
+                <input class="input" @bind="_newTitle" placeholder="למשל: לסדר את החדר" />
+            </div>
+            <div class="form-row">
+                <label class="form-label">תיאור (לא חובה)</label>
+                <input class="input" @bind="_newDescription" />
+            </div>
+            <div class="form-row">
+                <label class="form-label">תגמול</label>
+                <input type="number" min="1" class="input" @bind="_newReward" />
+            </div>
+            <button class="btn btn-primary btn-block" disabled="@_busy" @onclick="CreateChoreAsync">
+                ➕ צור משימה
+            </button>
+        </div>
+    }
+}
+
+@code {
+    // רלוונטי רק ל-Parent - ל-Child הזהות תמיד מה-Token
+    [SupplyParameterFromQuery] public Guid? ChildId { get; set; }
+
+    private Guid? EffectiveChildId => AuthState.IsChild ? AuthState.UserId : ChildId;
+    private string BackUrl => AuthState.IsChild ? "/" : $"/?childId={EffectiveChildId}";
+
+    private List<ChoreSummaryDto>? _chores;
+    private string _newTitle = "";
+    private string _newDescription = "";
+    private decimal _newReward = 10;
+    private bool _busy;
+    private string? _error;
+    private string? _approvedMessage;
+    private Guid? _loadedChildId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!AuthState.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        if (EffectiveChildId is null || EffectiveChildId == _loadedChildId) return;
+        _loadedChildId = EffectiveChildId;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            var result = await Api.GetChildChoresAsync(EffectiveChildId!.Value);
+            _chores = result.Chores;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private static string StatusIcon(string status) => status switch
+    {
+        "Pending" => "🕒",
+        "Completed" => "🔍",
+        "Approved" => "✅",
+        _ => "📋"
+    };
+
+    private async Task CompleteAsync(Guid choreId)
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            await Api.CompleteChoreAsync(choreId);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task ApproveAsync(Guid choreId)
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            var result = await Api.ApproveChoreAsync(choreId);
+            // רק הילד יכול להקצות - ההורה לא מנווט למסך ה-Decision Flow, רק מקבל אישור
+            _approvedMessage = $"אושר! ₪{result.Amount} מחכים לילד/ה להחליט איך לחלק.";
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task CreateChoreAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newTitle) || _newReward <= 0) return;
+
+        _busy = true;
+        _error = null;
+        try
+        {
+            await Api.CreateChoreAsync(EffectiveChildId!.Value, AuthState.UserId!.Value, _newTitle, _newDescription, _newReward);
+            _newTitle = "";
+            _newDescription = "";
+            _newReward = 10;
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

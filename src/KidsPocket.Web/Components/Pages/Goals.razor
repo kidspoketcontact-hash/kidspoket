@@ -1,0 +1,179 @@
+@page "/goals"
+@using KidsPocket.Web.Models
+@using KidsPocket.Web.Services
+@inject KidsPocketApiClient Api
+@inject ClientAuthState AuthState
+@inject NavigationManager Nav
+
+@if (_error is not null)
+{
+    <div class="alert alert-error">⚠️ @_error</div>
+}
+
+@if (EffectiveChildId is null)
+{
+    <div class="card"><p class="card-text">טוען...</p></div>
+}
+else
+{
+    <div class="card">
+        <h2 class="card-title">🎯 מטרות חיסכון</h2>
+        @if (_openSaveBalance is not null)
+        {
+            <p class="card-text muted">יש לך כרגע ₪@_openSaveBalance בקופת Save הפתוחה, זמינה להפקדה למטרות.</p>
+        }
+        <a class="btn btn-primary" href="@BackUrl">🔄 חזרה ליתרה</a>
+    </div>
+
+    @if (_goals is not null)
+    {
+        @foreach (var goal in _goals)
+        {
+            <div class="card" @key="goal.GoalId">
+                <div class="total-balance">
+                    <span class="total-balance-label">@(goal.IsCompleted ? "🏆" : "🎯") @goal.Name</span>
+                    <span class="total-balance-amount">₪@goal.CurrentAmount / ₪@goal.TargetAmount</span>
+                </div>
+
+                <div class="goal-progress-track">
+                    <div class="goal-progress-fill" style="@ProgressStyle(goal)"></div>
+                </div>
+
+                @if (goal.IsCompleted)
+                {
+                    <p class="card-text muted">🎉 המטרה הושגה!</p>
+                }
+                else
+                {
+                    <div class="form-row">
+                        <label class="form-label">להפקיד</label>
+                        <input type="number" min="1" class="input" @bind="_contributionAmounts[goal.GoalId]" @bind:event="oninput" />
+                    </div>
+                    @if (_openSaveBalance is not null && _contributionAmounts[goal.GoalId] > _openSaveBalance)
+                    {
+                        <p class="card-text" style="color:var(--error)">
+                            ⚠️ אין מספיק ביתרת ה-Save הפתוחה (יש רק ₪@_openSaveBalance)
+                        </p>
+                    }
+                    <button class="btn btn-primary btn-block"
+                            disabled="@(_busy || _contributionAmounts[goal.GoalId] <= 0 || _contributionAmounts[goal.GoalId] > _openSaveBalance)"
+                            @onclick="() => ContributeAsync(goal.GoalId)">
+                        💸 הפקד למטרה
+                    </button>
+                }
+            </div>
+        }
+    }
+
+    <div class="card">
+        <h2 class="card-title">➕ מטרה חדשה</h2>
+        <div class="form-row">
+            <label class="form-label">שם המטרה</label>
+            <input class="input" @bind="_newGoalName" placeholder="למשל: אופניים חדשים" />
+        </div>
+        <div class="form-row">
+            <label class="form-label">סכום יעד</label>
+            <input type="number" min="1" class="input" @bind="_newGoalTarget" />
+        </div>
+        <button class="btn btn-primary btn-block" disabled="@_busy" @onclick="CreateGoalAsync">
+            ➕ צור מטרה
+        </button>
+    </div>
+}
+
+@code {
+    // רלוונטי רק ל-Parent (מגיע מ-/? childId=... אחרי בחירת ילד/ה בדשבורד) - ל-Child הזהות תמיד מה-Token
+    [SupplyParameterFromQuery] public Guid? ChildId { get; set; }
+
+    private Guid? EffectiveChildId => AuthState.IsChild ? AuthState.UserId : ChildId;
+    private string BackUrl => AuthState.IsChild ? "/" : $"/?childId={EffectiveChildId}";
+
+    private List<GoalSummaryDto>? _goals;
+    private readonly Dictionary<Guid, decimal> _contributionAmounts = new();
+    private decimal? _openSaveBalance;
+    private string _newGoalName = "";
+    private decimal _newGoalTarget = 50;
+    private bool _busy;
+    private string? _error;
+    private Guid? _loadedChildId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!AuthState.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        if (EffectiveChildId is null || EffectiveChildId == _loadedChildId) return;
+        _loadedChildId = EffectiveChildId;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            var goalsResult = await Api.GetChildGoalsAsync(EffectiveChildId!.Value);
+            _goals = goalsResult.Goals;
+            foreach (var goal in _goals)
+                if (!_contributionAmounts.ContainsKey(goal.GoalId))
+                    _contributionAmounts[goal.GoalId] = 10;
+
+            var balance = await Api.GetBalanceAsync(EffectiveChildId.Value);
+            _openSaveBalance = balance.Buckets.FirstOrDefault(b => b.BucketCode == "save")?.Balance ?? 0;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private static string ProgressStyle(GoalSummaryDto goal)
+    {
+        var percent = goal.TargetAmount <= 0 ? 0 : Math.Min(100, Math.Round(goal.CurrentAmount / goal.TargetAmount * 100, 1));
+        return $"width: {percent}%";
+    }
+
+    private async Task ContributeAsync(Guid goalId)
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            await Api.ContributeToGoalAsync(goalId, _contributionAmounts[goalId]);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task CreateGoalAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newGoalName) || _newGoalTarget <= 0) return;
+
+        _busy = true;
+        _error = null;
+        try
+        {
+            await Api.CreateGoalAsync(EffectiveChildId!.Value, _newGoalName, _newGoalTarget, null);
+            _newGoalName = "";
+            _newGoalTarget = 50;
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

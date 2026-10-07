@@ -98,3 +98,4 @@
 /Users/claudiaedelman/projects/KidsPocket/tests/KidsPocket.Domain.Tests/obj/Debug/net9.0/KidsPocket.Domain.Tests.pdb
 /Users/claudiaedelman/projects/KidsPocket/tests/KidsPocket.Domain.Tests/obj/Debug/net9.0/KidsPocket.Domain.Tests.genruntimeconfig.cache
 /Users/claudiaedelman/projects/KidsPocket/tests/KidsPocket.Domain.Tests/obj/Debug/net9.0/ref/KidsPocket.Domain.Tests.dll
+/Users/claudiaedelman/projects/KidsPocket/tests/KidsPocket.Domain.Tests/obj/Debug/net9.0/KidsPocket.Domain.Tests.sourcelink.json

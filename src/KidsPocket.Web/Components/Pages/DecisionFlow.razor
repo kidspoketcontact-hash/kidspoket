@@ -1,0 +1,135 @@
+@page "/decision/{DecisionId:guid}"
+@using KidsPocket.Contracts.Decision
+@using KidsPocket.Web.Models
+@using KidsPocket.Web.Services
+@inject KidsPocketApiClient Api
+@inject ClientAuthState AuthState
+@inject NavigationManager Nav
+
+@if (_error is not null)
+{
+    <div class="alert alert-error">⚠️ @_error</div>
+}
+
+@if (_pending is null)
+{
+    <div class="card"><p class="card-text">טוען...</p></div>
+}
+else if (_confirmed)
+{
+    <div class="card card-center">
+        <div class="success-icon">🎉</div>
+        <h2 class="card-title">ההחלטה אושרה!</h2>
+        <p class="card-text muted">הכסף חולק לקופות שלך.</p>
+        <a class="btn btn-primary" href="/">🔄 חזרה ליתרה</a>
+    </div>
+}
+else
+{
+    <div class="card">
+        <h2 class="card-title">🤔 לאן הולך הכסף?</h2>
+
+        <div class="total-balance">
+            <span class="total-balance-label">💵 קיבלת</span>
+            <span class="total-balance-amount">₪@_pending.TotalAmount</span>
+        </div>
+        <p class="card-text muted">גררו את הקופות כדי להחליט איך לחלק.</p>
+
+        @foreach (var bucket in _pending.InitialSuggestion)
+        {
+            <div class="bucket-row @BucketVisuals.CssClassFor(bucket.BucketCode)" @key="bucket.BucketId">
+                <div class="bucket-row-label">
+                    <span class="bucket-row-icon">@BucketVisuals.IconFor(bucket.BucketCode)</span>
+                    <span>@bucket.BucketName</span>
+                </div>
+                <input type="range" class="slider" min="0" max="@MaxFor(bucket.BucketId)" step="1"
+                       @bind:get="_amounts[bucket.BucketId]" @bind:set="v => OnAmountChanged(bucket.BucketId, v)"
+                       @bind:event="oninput" />
+                <span class="bucket-amount">₪@_amounts[bucket.BucketId]</span>
+            </div>
+        }
+
+        <div class="remaining @(Remaining == 0 ? "remaining-ok" : "remaining-warn")">
+            @(Remaining == 0 ? "✅" : "⚠️") נותר לחלק: ₪@Remaining
+        </div>
+        <button class="btn btn-primary btn-block" disabled="@(Remaining != 0 || _busy)" @onclick="ConfirmAsync">
+            ✅ אישור הקצאה
+        </button>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid DecisionId { get; set; }
+
+    private PendingDecisionResponse? _pending;
+    private readonly Dictionary<Guid, decimal> _amounts = new();
+    private bool _confirmed;
+    private bool _busy;
+    private string? _error;
+
+    private decimal Remaining => _pending is null ? 0 : _pending.TotalAmount - _amounts.Values.Sum();
+
+    // התקרה של קופה בודדת היא מה שנשאר לחלק בתוספת מה שכבר שלה - כך אי אפשר לגרור
+    // מעבר לסכום שהתקבל בסך הכל, גם אם מדובר בקופה אחת שמנסה "לבלוע" הכל.
+    private decimal MaxFor(Guid bucketId) => _amounts[bucketId] + Remaining;
+
+    private Guid _loadedDecisionId;
+
+    // OnParametersSetAsync ולא OnInitializedAsync - אם אי פעם ננווט ישירות מהחלטה להחלטה
+    // (אותו טיפוס קומפוננטה, רק DecisionId משתנה בנתיב), אותו מופע קומפוננטה נשאר חי
+    // ו-OnInitializedAsync לא היה רץ שוב. שומרים _loadedDecisionId כדי לא לטעון פעמיים בכל render.
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!AuthState.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        if (DecisionId == _loadedDecisionId) return;
+        _loadedDecisionId = DecisionId;
+
+        try
+        {
+            _pending = await Api.GetPendingDecisionAsync(DecisionId);
+            foreach (var suggestion in _pending.InitialSuggestion)
+                _amounts[suggestion.BucketId] = suggestion.SuggestedAmount;
+
+            // ברירת מחדל: השארית שלא הוצעה (מעבר ל-10/10/10) הולכת ל-Save,
+            // כדי שהמסך ייפתח כבר במצב מאוזן (Remaining=0) והילד רק גורר משם.
+            var saveBucket = _pending.InitialSuggestion.FirstOrDefault(b => b.BucketCode == "save");
+            if (saveBucket is not null)
+                _amounts[saveBucket.BucketId] += _pending.UnallocatedRemainder;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private void OnAmountChanged(Guid bucketId, decimal amount)
+    {
+        var max = _amounts[bucketId] + Remaining;
+        _amounts[bucketId] = Math.Clamp(amount, 0, max);
+    }
+
+    private async Task ConfirmAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            var allocations = _amounts.Select(kv => new BucketAllocationInput(kv.Key, kv.Value)).ToList();
+            await Api.AllocateAsync(DecisionId, allocations);
+            _confirmed = true;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}
